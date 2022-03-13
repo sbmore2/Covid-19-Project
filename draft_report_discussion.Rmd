@@ -1,0 +1,45 @@
+---
+title: "Draft report Discussion"
+author: "Sanskruti More, 920277683, Team 6"
+date: "03/09/2022"
+output:
+  html_document:
+    df_print: paged
+    number_sections: yes
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
+
+
+
+# Overall impression
+
+<span> This report is an exploratory analysis of the covid -19 cases, deaths and vaccination rates around the world. The project aims at answering the question "Is it safe to lift all covid restrictions in a fully vaccinated population? If yes, how safe is it?" The question is well-motivated and the initial analysis is on the right track. The Model needs to better developed with relevant justification of variables selected. Moreover, the report lacks a description of justification for formulae used in aggregation. It is also recommended to perform a sensitivity analysis beyond model diagnostics. Besides this, the report contains minor bugs and editing errors that could be rectified in future iterations. The report meets expectations in terms of data description and justification of choices for covariates from the dataset. However, the model requires fine-tuning.</span>
+
+# Major comments 
+
+<span>**1** 
+The line under section 5.3 "Other missing observations are few in number, possibly due to error in reporting and so these observations are dropped adopting the listwise deletion method". This is not a major concern however, the author could elaborate on exactly which missing variables were dropped. If the dataset contains many variables then maybe the author could mention that since the dataset contains many variables some of them are not relevant to our analysis therefore they choose to drop it.</span>
+
+<span>**2** The idea of choosing the population by vaccination rate in a controlled region such as Europe is logical. However, maybe explaining why the top 3 regions excluding Gibraltar were not chosen is required. Specifically, between Portugal and Denmark, why was Denmark chosen over Portugal? It is recommended, since the analysis focuses purely on one population therefore a deeper understanding of this choice should be communicated.</span>
+
+<span>**3** This line in the inferential analysis section "Note the increase in deaths in February 2022 in the chart above." would be better supported with more visual data on Omicron. Since the analysis focuses on the Omicron wave, it would be recommended to zoom in on the Omicron Wave in the exploratory analysis specifically for Denmark. As the Inferential analysis speaks about this phase with metrics but there is no visual context to relate these metrics. Therefore, a similar line chart of new cases, deaths and hospitalizations from December 2021 onwards would help tie the information presented.</span>
+
+<span> **4** The model proposition and sensitivity analysis section of the report is weak. 1) The results of the linear regression model have no explanation therefore, we can't capture what the model is trying to explain. 2) It appears that the author of the report is still exploring a few models therefore, following this chain of thought, we will comment on the Linear Mixed Effect Model idea as well. As the author suggested in the justification, changing the stringency index into a categorical variable sounds like a good direction to utilize the stringency index as treatment effect. Moreover, it appears that the vaccination data seems to be insignificant here and as rightly observed by the author "The vaccination rate as observed above has already plateaued so it might be worth looking into how we can value the presence of this variable in an advanced model." Therefore, maybe the author could leave this variable out of the model to increase focus on the hospitalizations and restrictions.</span>
+
+<span> **5** The explanation of the different variables in "Other Covariates" section is extremely detailed and covers all the important variables in the model with justification for the choice. It gives good depth into the authors thought process and choices. The paragraphs require finer tuning for the graphs presented as they lack some finesse.</span>
+
+<span>**6** The sensitivity analysis section should include the diagnostic plot instead of just the statements. Similar to the results section which lacks depth in inference of the results. Based on further discussion, one major concern is how the author would address such a short time frame. What direction would the author take  if the results are counter intuitive. The expectation is that the drop in restrictions would have an association with deaths however, how would the author respond if the data doesn't confirm the expectation.</span>
+
+
+
+# Minor comments 
+
+<span>The line graphs have overlapping values on x-axis. Maybe the author could change the tickangle to fit all the months.</span>
+
+<span>The presentation of tables and raw data especially around the Maps and tables in Descriptive analysis is poor. The author could use the kable package to present the tables more effectively.</span>
+
+
+
+

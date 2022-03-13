@@ -1,0 +1,225 @@
+---
+title: "Progress Report"
+author: "Sanskruti More , 920277683"
+date: "02/18/2022"
+output:
+  html_document:
+    df_print: paged
+    number_sections: yes
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
+
+```{r, include=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(scales)
+library(lubridate)
+library(ggplot2)
+library(zoo)
+```
+
+```{r, include=FALSE}
+
+```
+# Roadmap 
+
+<span>The roadmap includes some sections that do an exploratory analysis of the WHO cases and vaccine data. Other sections of the road map will be completed as per the deadlines set by the author.</span>
+
+# Abstract
+- Completed - By Draft Report Submission (4th March) 
+
+# Introduction
+It has been two years since the inception of the Covid-19 Pandemic. The world has been in different stages of lockdown during this period and globally faced at least 3 different waves of the variants of the virus. As we moved past the peak of the omicron variant, Western Countries have begun to ease restrictions on social distancing and masking. <insert a few examples, YOLO county not requiring masks for vaccinated individuals> The omicron variant was termed as a 'mild variant' by many as the number of cases were high but the mortality and hospitalization rate was low. This could be the effect of the vaccination policy. As high-income countries begin to ease restrictions, this report will study one such high-income, high-vaccination country, Denmark in the ongoing omicron phase. 
+- This section will be updated as more progress is made in the project. 
+
+# Research Question
+Does dropping all Covid-19 restrictions amidst the omicron wave affect the cases and mortality rate in a highly vaccinated and boosted population? 
+If yes, then is this relationship causal. Additionally, is the vaccine effective?
+
+# Data Summary
+
+This analysis will use the country Denmark as a case study and look at case-mortality rate from November 2021 to February 2022. The essential covid-19 metrics in this analysis are number of new cases, number of deaths, case-mortality rates, hospitalization rate and vaccination rate. In order to account for confounding factors, socio-economic factors such as age distribution of the population, income distribution and other leading causes of diseases in the population will be accounted for. The following sources of data will be considered:
+
+
+- **Daily cases and Deaths by date reported to WHO** 
+  - date reported, new cases (subsetted by country - Denmark)
+- **Vaccination Data reported to WHO**
+  - persons vaccinated per 100, first vaccine date, vaccine type
+  (From this dataset identify the distribution of vaccine over time vs population to identify the efficacy range as the population may be in the end of vaccines max effective window)
+- **Our world in Data Global Covid Dataset**
+A subset of this dataset specifically for Denmark will be considered.
+    - Hospital and ICU patients daily (collected by Our World in Data Team), Stringency Index (Oxford Covid-19 Government Response Tracker), population Density, elder_age, life_expectancy, cardiovascular death rate, Diabetes_prevanlce
+    The data is pooled through organizations such as UN, World Bank, OECD, IHME...) therefore, it can be considered reliable. 
+
+
+# Background
+
+## WHO New Cases and Mortaility data
+
+The data is updated daily from it's inception 3rd January 2020 to present.
+
+- Character/Categorical Variables
+  - Country_code
+  - Country 
+  - WHO_region
+
+- Temporal
+  - Date_reported
+
+- Numeric Variables:
+  - New_cases
+  - Cumulative_cases
+  - New_deaths
+  - Cumulative_deaths
+
+There is no obvious missing data. Different regions and countries could have errors in reporting as observed minimum new cases is negative which is not possible. Moreover, reporting of deaths has  caveats such as several countries have under reported deaths (insert evidence to support) due to unintentional and intentional errors. 
+
+``` {r, include=FALSE}
+vaccine <- read_csv('data/vaccination-data.csv')
+covid <- read_csv("https://covid19.who.int/WHO-COVID-19-global-data.csv")
+
+
+covid <- covid %>% 
+  filter(WHO_region != "Other") %>% 
+  mutate(WHO_region = fct_recode(WHO_region,                            "Eastern Mediterranean"="EMRO","Europe" = "EURO","Africa" = "AFRO","Western Pacific" = "WPRO","Americas"="AMRO","South-East Asia" = "SEARO"))
+
+
+
+```
+
+``` {r, echo = FALSE}
+covid$Country[covid$Country == 'United States of America'] <- 'USA'
+covid$Country[covid$Country == 'Bolivia (Plurinational State of)'] <- 'Bolivia'
+
+library(maps)
+world <- map_data("world");
+worldplot <- ggplot() +
+  geom_polygon(data = world, aes(x=long, y = lat, group = group)) 
+
+
+covid.today<- covid %>% 
+  filter(Date_reported == "2021-2-18") %>% 
+  mutate(region=Country)
+
+
+covid.today.world<- inner_join(world, covid.today, by = "region")
+
+fig.map  <- ggplot() +
+  geom_polygon(data = covid.today.world, aes(x=long, y = lat, group = group,fill=New_deaths)) + 
+  coord_fixed(1.3) + ggtitle("New Confirmed Deaths as of 18th February 2022")
+fig.map
+```
+
+The map above shows that the number of deaths reported in South America specifically Brazil and North America's United States is higher than 1000. Some countries in Europe also have between 500-1000 reported new deaths. Note, the map has missing countries in the African continent and will be fixed in the next iteration. 
+
+``` {r, echo = FALSE}
+covid %>% group_by(WHO_region) %>% 
+  filter(Date_reported>= "2021-02-8") %>% 
+  summarise(New_cases = max(New_cases), New_deaths = max(New_deaths)) 
+```
+
+<span>Americas, Europe and South_east Asie have the highest number of new cases in the last 7 days, this maybe due to a number of factors one being frequent testing especially in parts of Europe and Americas. From this, we infer that considering these regions for analysis is useful as we can assume stricter testing in our inference. The daily death count for these regions is also higher than the rest therefore, it is interesting to see how despite high vaccination rate (see below) these regions have higher tallies. Since the America's includes South American and North American countries with large disparities in socio-economic characteristics we will turn our attention to Europe.</span> 
+
+``` {r, echo = FALSE}
+euro_covid = subset(covid, WHO_region == 'Europe')
+euro_covid %>% group_by(Country) %>% 
+  filter(Date_reported>= "2021-02-8") %>% 
+  summarise(New_cases = max(New_cases))  %>% arrange(desc(New_cases)) %>% top_n(n = 5)
+euro_covid %>% group_by(Country) %>% 
+  filter(Date_reported>= "2021-02-8") %>% 
+  summarise(New_deaths = max(New_deaths))  %>% arrange(desc(New_deaths)) %>% top_n(n = 5)
+
+```
+
+<span>From the above graph we see the max new cases and deaths reported by country. Note that, the dataset is looking at daily cases, therefore, the inference from this is volatile. It would be better to check summary statistics with 7 day average after adjusting for population densities in the next iteration.</span>
+
+## Vaccine Data 
+
+<span>This data-set contains vaccination rates, types of vaccines administered and date of first vaccine administration. The dataset has a few missing values that will be dropped.</span>
+
+``` {r, echo = FALSE}
+vaccine$COUNTRY[vaccine$COUNTRY == 'United States of America'] <- 'USA'
+vaccine$COUNTRY[vaccine$COUNTRY == 'Bolivia (Plurinational State of)'] <- 'Bolivia'
+
+world <- map_data("world");
+worldplot <- ggplot() +
+  geom_polygon(data = world, aes(x=long, y = lat, group = group)) 
+
+
+vaccine.today<- vaccine %>% 
+  mutate(region=COUNTRY)
+
+
+vaccine.world<- inner_join(world, vaccine.today, by = "region")
+
+fig.map  <- ggplot() +
+  geom_polygon(data = vaccine.world, aes(x=long, y = lat, group = group,fill=PERSONS_FULLY_VACCINATED_PER100)) + 
+  coord_fixed(1.3) + ggtitle("Vaccination Rate")
+fig.map
+```
+
+As per the vaccination rate, the African subcontinent has not vaccinated above 50% of its population. The omicron variant has been said to have originated in this sub-continent.In this case study we will focus on highly vaccinated and boosted populations therefore, the North American and European Regions are strong contenders. 
+
+<span>While the world map gives an overview of the global vaccination rate we are interested in identifying the countries with most vaccinated population for our analysis. From the previous dataset we are interested in exploring the European region </span> 
+
+``` {r, echo = FALSE}
+vaccine %>%
+  filter(WHO_REGION== "EURO") %>% 
+  group_by(COUNTRY) %>% summarise(PERSONS_FULLY_VACCINATED_PER100 = max(PERSONS_FULLY_VACCINATED_PER100)) %>% arrange(desc(PERSONS_FULLY_VACCINATED_PER100)) %>% top_n(n = 5)
+```
+
+<span>As seen the highest vaccinated countries are Malta, Faroe Islands, Portugal and Denmark. We will ignore Gibraltar as it is clearly a result of error in reporting. This error will be rectified in the next iteration. The two countries of interest now are Portugal and Denmark. In the next step of this analysis we will take a closer look at these two countries and justify the selection of Denmark. From prior knowledge, Denmark has recently lifted all covid restrictions therefore, it will be interesting to look at the data specifically for Denmark.</span>
+
+## Other Covariate Data 
+
+<span>For this section, we will be looking at the data collected by Our World in Data. It includes the covariates of interest mentioned in the previous section. We will take a deeper look at this data set in the next iteration. However, a high-level overview suggests that the dataset has 67 variables composing of information on new cases, mortality, hospitalization,other health conditions and age. There are 747 observation for Denmark however, some observation have missing values therefore, they will be dropped in further analysis.</span>
+
+**Next Steps for this section**
+Finsih - 20th Feb
+
+- Clean the Denmark and Portugal subsets
+- Visualize hospital occupancy, mortality and new cases
+- Pick a country and observe the elder ratio, confounding diseases proportion, stringency index
+- Note since we will be looking at the omicron wave the data will be taken from November through February.
+
+``` {r, include = FALSE}
+owid <- read_csv('data/owid-covid-data.csv')
+denmark = subset(owid,location == "Denmark")
+portugal = subset(owid,location == "Portugal")
+
+summary(denmark)
+```
+
+# Methods and Modelling and Fitting
+Intended to finish by 22th Feb
+Based on the findings for response variable of mortality will be considered against stringency index, cases, vaccination, other covariates of interest
+
+## Notation
+## Assumptions
+## Justification for the chosen model
+
+# Results 
+Intended to finish by 23rd Feb
+
+# Sensitivity Analysis
+Intended to finish by 25th Feb
+
+# Causal Inference
+Intended to finish by 28th February
+
+# Conclusion
+Intended to finish by 28th February 
+
+# Session info {-}
+
+```{r}
+sessionInfo()
+```
+
+
+# Code Appendix {-}
+```{r ref.label=knitr::all_labels(), echo = T, eval = F}
+```
+

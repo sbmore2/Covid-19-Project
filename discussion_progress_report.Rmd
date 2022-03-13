@@ -1,0 +1,49 @@
+---
+title: "Progress report Discussion"
+author: "Sanskruti More, 920277683, Team 6"
+date: "02/25/2022"
+output:
+  html_document:
+    df_print: paged
+    number_sections: yes
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
+
+
+
+# Overall impression
+
+<span> This report is an exploratory analysis of the covid -19 cases, deaths and vaccination rates around the world. The project aims at answering the question "Is it safe to lift all covid restrictions in a fully vaccinated population? If yes, how safe is it and what standards does the population have to meet to qualify?" The question is well-motivated and the initial analysis is on the right track. The question requires some fine-tuning to focus on a very specific problem inorder to obtain a conclusive answer. Moreover, the report lacks a description of justification for formulae used in aggregation. It is also recommended to explore a control population as the report focuses on studying Denmark primarily. Besides this, the report contains minor bugs and editing errors that could be rectified in future iterations. The report meets expectations as a first step. The roadmap is clear in terms of deadlines however, the phases lack description of tasks.</span>
+
+# Major comments 
+
+<span>**1** 
+The research question of the project "Does dropping all Covid-19 restrictions amidst the omicron wave affect the cases and mortality rate in a highly vaccinated and boosted population? If yes, then is this relationship causal. Additionally, is the vaccine effective?" is broad. The first part of the question is studying the effect of lifting covid restrictions on the case mortality rate. Here the sample population is assumed to be from a high vaccination rate. The "Additionally, is the vaccine effective?" question seems to diverge from the previous question. The report does not expand on how to answer this additional question. It seems that the effectiveness of the vaccine could be a completely different research question with a different set of covariates. The intention to ask this question though is to eventually attribute the success or failure of the case-mortality rate in a no-restriction policy phase to the vaccine. Therefore, there exists a connection in the two questions however, there should be a portion that explicitly establishes this connection and perhaps paraphrase the primary question with more clarity.</span>
+
+<span>
+**2** 
+The data background section barring the minor error describes interesting covariates to study the population. While the variables are mentioned, it would be useful for the reader to have a more elaborate description of the variables. For example, new_cases and new_deaths describe that these are talking about number of infections and deaths however it would be clearer if it was mentioned that these are new_deaths recorded everyday and some background on how the number was obtained. 
+</span>
+
+<span>
+**3** Following the previous comment, the table that shows new_cases and new_deaths for the WHO regions comes to an interesting conclusion about frequent and stricter testing which is relevant to answering the research question. However, a description of the formula applied to calculate the highest number of cases in the last 7 days would be useful. Since each region has many different countries, so how was the maximum taken, is it connected to one country in the region or how does it aggregate over the whole region. Since we've seen the code the answer is clear however, it would be good to briefly mention it here as well.</span>
+
+<span> **4** The idea of choosing the population by vaccination rate in a controlled region such as Europe is logical. However, maybe explaining why the top 3 regions excluding Gibraltar were not chosen is required. Specifically, between Portugal and Denmark, why was Denmark chosen over Portugal?
+
+<span> **5** Additionally, it is worth exploring if a population with similar characteristics as Denmark could be chosen as a control for the analysis. One pending question that arises from here is how we would choose the control and whether it is required. Perhaps, talking to the Project mentor (TA) about this would prove beneficial.</span>
+
+<span>**6** The roadmap for certain sections, lacks a description of the tasks. This maybe due to lack of direction as the external dataset is yet to be studied at length. However, a rough idea of the models in consideration would be beneficial. As mentioned in the modelling section, "response variable of mortality will be considered against stringency index, cases, vaccination, other covariates of interest" perhaps elaborating on this intuitively,would help as a template towards building the model. </span>
+
+# Minor comments 
+
+<span> 
+The world maps in the data decription have some missing African regions. This maybe due to a mismatch in the naming conventions. In the final report it is advisable to rectify this error. 
+</span> 
+
+<span>The paragraph "Our analysis will use the state of California... interested in the results of this report." is perhaps from the sample report provided from a previous project. The author used it as reference in constructing the description and forgotten to delete it from the progress report.</span>
+
+<span>There is a minor typo in "Americas, Europe and South_east Asie " under the WHO New Cases and Mortaility data section. Moreover, a few punctuations are missing in the subsequesnt paragraphs. </span>
+
+
