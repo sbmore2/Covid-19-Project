@@ -75,19 +75,14 @@ A subset of this dataset specifically for Denmark will be considered.
 
 The data is updated daily from it's inception 3rd January 2020 to present.
 
-- Character/Categorical Variables
-  - Country_code
-  - Country 
-  - WHO_region
-
-- Temporal
-  - Date_reported
-
-- Numeric Variables:
-  - New_cases
-  - Cumulative_cases
-  - New_deaths
-  - Cumulative_deaths
+``` {r, echo = FALSE}
+WHO_cases_table = data.frame(Variable = c("Country_Code","Country","WHO_region","Date_reported","New_cases","Cumulative_cases","New_deaths","Cumulative_deaths"), 
+                            Type = c("factor", "factor", "factor", "Temporal", "numeric", "numeric", "numeric", "numeric"), 
+                            Description = c("ISO Alpha-2 country code", "Country, territory, area", "WHO regional offices: WHO Member States are grouped into six WHO regions -- Regional Office for Africa (AFRO), Regional Office for the Americas (AMRO), Regional Office for South-East Asia (SEARO), Regional Office for Europe (EURO), Regional Office for the Eastern Mediterranean (EMRO), and Regional Office for the Western Pacific (WPRO).", "Date of reporting to WHO", "New confirmed cases. Calculated by subtracting previous cumulative case count from current cumulative cases count.", "Cumulative confirmed cases reported to WHO to date.", "New confirmed deaths. Calculated by subtracting previous cumulative deaths from current cumulative deaths.", "Cumulative confirmed deaths reported to WHO to date.
+")
+                            )
+knitr::kable(WHO_cases_table)
+```
 
 There is no obvious missing data. Different regions and countries could have errors in reporting as observed minimum new cases is negative which is not possible. Moreover, reporting of deaths has  caveats such as several countries have under reported deaths (insert evidence to support) due to unintentional and intentional errors. 
 
@@ -104,7 +99,7 @@ covid <- covid %>%
 
 ```
 
-``` {r, echo = FALSE}
+``` {r, echo = FALSE,,warning=FALSE,message=FALSE }
 covid$Country[covid$Country == 'United States of America'] <- 'USA'
 covid$Country[covid$Country == 'Bolivia (Plurinational State of)'] <- 'Bolivia'
 
@@ -130,15 +125,15 @@ fig.map
 <span>The map above shows that the number of deaths reported in South America specifically Brazil and North America's United States is higher than 1000. Some countries in Europe also have between 500-1000 reported new deaths.</span>
 
 
-``` {r, echo = FALSE}
+``` {r, echo = FALSE,warning=FALSE,message=FALSE }
 covid %>% group_by(WHO_region) %>% 
   filter(Date_reported>= "2021-02-8") %>% 
   summarise(New_cases = max(New_cases), New_deaths = max(New_deaths)) 
 ```
 
-<span>Americas, Europe and South_east Asie have the highest number of new cases in the last 7 days, this maybe due to a number of factors one being frequent testing especially in parts of Europe and Americas. From this, we infer that considering these regions for analysis is useful as we can assume stricter testing in our inference. The daily death count for these regions is also higher than the rest therefore, it is interesting to see how despite high vaccination rate (see below) these regions have higher tallies. Since the America's includes South American and North American countries with large disparities in socio-economic characteristics we will turn our attention to Europe.</span> 
+<span>Americas, Europe and South_east Asia have the highest number of new cases in the last 7 days, this maybe due to a number of factors one being frequent testing especially in parts of Europe and Americas. From this, we infer that considering these regions for analysis is useful as we can assume stricter testing in our inference. The daily death count for these regions is also higher than the rest therefore, it is interesting to see how despite high vaccination rate (see below) these regions have higher tallies. Since the America's includes South American and North American countries with large disparities in socio-economic characteristics we will turn our attention to Europe.</span> 
 
-``` {r, echo = FALSE}
+``` {r, echo = FALSE,warning=FALSE,message=FALSE }
 euro_covid = subset(covid, WHO_region == 'Europe')
 euro_covid %>% group_by(Country) %>% 
   filter(Date_reported>= "2021-02-8") %>% 
@@ -155,7 +150,7 @@ euro_covid %>% group_by(Country) %>%
 
 <span>This data-set contains vaccination rates, types of vaccines administered and date of first vaccine administration. The dataset has a few missing values that will be dropped.</span>
 
-``` {r, echo = FALSE}
+``` {r, echo = FALSE,warning=FALSE,message=FALSE }
 vaccine$COUNTRY[vaccine$COUNTRY == 'United States of America'] <- 'USA'
 vaccine$COUNTRY[vaccine$COUNTRY == 'Bolivia (Plurinational State of)'] <- 'Bolivia'
 
@@ -180,7 +175,7 @@ As per the vaccination rate, the African subcontinent has not vaccinated above 5
 
 <span>While the world map gives an overview of the global vaccination rate we are interested in identifying the countries with most vaccinated population for our analysis. From the previous dataset we are interested in exploring the European region </span> 
 
-``` {r, echo = FALSE}
+``` {r, echo = FALSE,warning=FALSE,message=FALSE }
 vaccine %>%
   filter(WHO_REGION== "EURO") %>% 
   group_by(COUNTRY) %>% summarise(PERSONS_FULLY_VACCINATED_PER100 = max(PERSONS_FULLY_VACCINATED_PER100)) %>% arrange(desc(PERSONS_FULLY_VACCINATED_PER100)) %>% top_n(n = 5)
@@ -380,7 +375,7 @@ summary(denmark)
 
 ## Inferencial Analysis 
 
-<span>In this section, we will look at the period when Omicron was dominant in Denmark. Based on the data obtained, the Omicron Variant accounted for 50% of the cases in Denmark on December 25th which is the holiday season and the Stringency Index around this time was 38.8 (for reference the no restriction index is around 16.67). The variant became dominant in the begining of January. During this time hospitalizations, deaths and cases surged considerably as seen above. A 7-day rolling averge of deaths shows that the deaths are increasing even as the peak has passed. Note the increase in deaths in February 2022 in the chart above. Due to limitations on data availability, for the scope of this project, we would have to study the omicron wave upto this point. Note, the month of January had stricter covid restrictions, however from February 1st, the covid restrictions were dropped. This gives us two months to make comparisions based on the index. While making these comparisions we will have to define parameters based on the SIR model for Omicron i.e Answer questions such as what is the incubation period? What is the recovery time? What is the infection rate?. The incubation period is usually 2-4 days and the average recovery time is about 5 days. Therefore, the one month windows we are considering may be sufficient to test the difference in Stringency Index. Therefore, we extract a variable for `week` and `month`to use in our model. `Week` is based on dates starting from 13th December (50th week of 2021) up to the 8th week of 2022 (Feb 28th). Additionally, since the intent is to test the importance of covid restrictions during the Omicron wave, we choose to transform the numeric `stringency_index` to a categorical variable `restriction` which has 5 levels 0,1,2,3,4 starting from No restrictions to the strictest restrictions. The numeric range for each level is of length 20. Consequently for the period of investigation, Omicron, the levels of restriction are 0 (February 2022 onwards) and 1 (December - January). As seen from the chart above, the hospitalization rate was the highest since the begining of the pandemic. Therefore, `hospital_patients` encompassing the new hospital admits per day is considered in our model. Since the vaccination rate is has somewhat plateaued during this time its effect is not quantified in our model. The model will assume that majority of the population is fully vaccinated and therefore has some increased immunity compared to previous waves.</span>
+<span>In this section, we will look at the period when Omicron was dominant in Denmark. Based on the data obtained, the Omicron Variant accounted for 50% of the cases in Denmark on December 25th which is the holiday season and the Stringency Index around this time was 38.8 (for reference the no restriction index is around 16.67). The variant became dominant in the beginning of January. During this time hospitalizations, deaths and cases surged considerably as seen above. A 7-day rolling average of deaths shows that the deaths are increasing even as the peak has passed. Note the increase in deaths in February 2022 in the chart above. Due to limitations on data availability, for the scope of this project, we would have to study the omicron wave upto this point. Note, the month of January had stricter covid restrictions, however from February 1st, the covid restrictions were dropped. This gives us two months to make comparisons based on the index. While making these comparisons we will have to define parameters based on the SIR model for Omicron i.e Answer questions such as what is the incubation period? What is the recovery time? What is the infection rate?. The incubation period is usually 2-4 days and the average recovery time is about 5 days. Therefore, the one month windows we are considering may be sufficient to test the difference in Stringency Index. Therefore, we extract a variable for `week` and `month`to use in our model. `Week` is based on dates starting from 13th December (50th week of 2021) up to the 8th week of 2022 (Feb 28th). Additionally, since the intent is to test the importance of covid restrictions during the Omicron wave, we choose to transform the numeric `stringency_index` to a categorical variable `restriction` which has 5 levels 0,1,2,3,4 starting from No restrictions to the strictest restrictions. The numeric range for each level is of length 20. Consequently for the period of investigation, Omicron, the levels of restriction are 0 (February 2022 onwards) and 1 (December - January). As seen from the chart above, the hospitalization rate was the highest since the beginning of the pandemic. Therefore, `hospital_patients` encompassing the new hospital admits per day is considered in our model. Since the vaccination rate is has somewhat plateaued during this time its effect is not quantified in our model. The model will assume that majority of the population is fully vaccinated and therefore has some increased immunity compared to previous waves.</span>
 
 
 ## Model Propositions
@@ -494,15 +489,12 @@ From the diagnostic plots we see that:
 
 ## Effect of the Spike in February
 
-As discussed in the results, we expected the spike in deaths and cases and February to relate to the change in restriction level that was introduced on 1st February. (EXPLAIN WHAT EXACTLY THE CHANGE MEANT - NO MASKS ETC). In order to observe the sensitivity of the model to a change in this time frame we propose the following:
+As discussed in the results, we expected the spike in deaths and cases and February to relate to the change in restriction level that was introduced on 1st February. This change meant dropping all mask and mobility restrictions. In order to observe the sensitivity of the model to a change in this time frame we propose the following:
 
 **Remove this time frame from the data and observe the change in the model**
 
-<span>The intuition behind bringing this change is to observe if the model is sensitive to the change in this time period. If it is then, we know that the model didn't encompass enough information and we need to add more explanatory covariates to describe the time-period. From the results of this new model, we see that the results change only slightly. The new cases is no longer a statistically significant at level 0.1. Moreover, the estimates obtained from the summary show a 1 unit increase for all predictors. These changes could be due to many reasons,<span>
+<span>The intuition behind bringing this change is to observe if the model is sensitive to the change in this time period. If it is then, we know that the model didn't encompass enough information and we need to add more explanatory covariates to describe the time-period. From the results of this new model, we see that the results change only slightly. The new cases is no longer a statistically significant at level 0.1. Moreover, the estimates obtained from the summary show a 1 unit increase for all predictors. These changes could be due to many reasons, such as insufficient data and oversimplification of covariates discussed in the next section.<span>
 
-<span>**1) Insufficient data**, we are trying to study the population of Denmark for a very short time period. In our model categorically classifying stringency index simplified the data for interpretation into just two groups (No restriction, Moderate Restriction), however, over the entire period of the pandemic restrictions would contain 5 groups. If the changes, were better quantified, then perhaps a relation could be established between restrictions and deaths. Therefore, would be beneficial to explore if the restrictions were significant in the previous waves. However, in context of our primary question, our scope is the Omicron wave.</span> 
-
-<span> **2) Oversimplification of Covariates** While `hosp_patients` is an important factor in explaining the deaths. This variable encompasses a variety of information not known to us for example, the age distribution of these patients. How many of them were critically ill? What were the in-patient service days which describes the fully staffed hospital beds available for the duration of the patients stay, number of icu patients, hospital and proportion of immuno-compromised patients. If the patients in the hospital were high-risk, then perhaps a change in restriction would not have affected the outcome by large if they were to contract the virus. If the patients were from all age groups, and health conditions then clearly, the restrictions would play a significant role worth investigating.</span>
 
 ``` {r, echo = FALSE, warning = FALSE}
 df_remove_spike = df_complete %>% filter(week != 6 & week != 7)
@@ -516,7 +508,11 @@ knitr::kable( anova(fit_7_no_spike))
 
 ## Discussion 
 
-<span>My findings suggest that dropping all the covid restrictions was not a significant factor in the increase in deaths surging the Omicron wave in Denmark. They also suggest that hospitalizations per day were a stronger and more significant indicator of the new deaths (p-value= 1.41e-12 at level = 0.05). However, there are major caveats of this analysis that consequently make drawing causal inference from these findings invalid. While the assumptions of the linear model described are satisfied, we belive the concern is due to the nature of the dataset under analysis and the variates.</span>
+<span>Our findings suggest that dropping all the covid restrictions was not a significant factor in the increase in deaths surging the Omicron wave in Denmark. They also suggest that hospitalizations per day were a stronger and more significant indicator of the new deaths (p-value= 1.41e-12 at level = 0.05). This could mean that, hospitalizations was an indirect indicator of covid restrictions being dropped which was not accurately captured by the current state of the model.There are major caveats of this analysis that consequently make drawing causal inference from these findings invalid. While the assumptions of the linear model described are satisfied, we believe the concern is due to the nature of the dataset under analysis and the variates.</span>
+
+<span>**Insufficient data**, we are trying to study the population of Denmark for a very short time period. In our model categorically classifying stringency index simplified the data for interpretation into just two groups (No restriction, Moderate Restriction), however, over the entire period of the pandemic restrictions would contain 5 groups. If the changes, were better quantified, then perhaps a relation could be established between restrictions and deaths. Therefore, would be beneficial to explore if the restrictions were significant in the previous waves. However, in context of our primary question, our scope is the Omicron wave.</span> 
+
+<span> **Oversimplification of Covariates** While `hosp_patients` is an important factor in explaining the deaths. This variable encompasses a variety of information not known to us for example, the age distribution of these patients. How many of them were critically ill? What were the in-patient service days which describes the fully staffed hospital beds available for the duration of the patients stay, number of icu patients, hospital and proportion of immuno-compromised patients. If the patients in the hospital were high-risk, then perhaps a change in restriction would not have affected the outcome by large if they were to contract the virus. If the patients were from all age groups, and health conditions then clearly, the restrictions would play a significant role worth investigating.</span>
 
 <span> We are studying a time-series data where each observation is aggregates per day. Since we are looking at just one country from a global dataset, we are not able to utilize information such as elder ratio, number of hospital beds, proportion of at risk population. Due to the lack of these values, we could not build a model that accurately describes the population of Denmark besides our prior knowledge about Denmark that is unknown to our model. Perhaps, a dataset with cases at a city/county level would benefit our analysis further. In our analysis, we wanted to study about 13 weeks of the omicron wave - one major caveat here is that the Omicron wave is still on-going in Denmark therefore, the spike in deaths and cases could have been due to the wave reaching its peak at the end of the 7th Week which is 1 week after the restriction was dropped, and hence maybe the restriction drop had no significant relation to the spike.</span>
 
@@ -533,9 +529,13 @@ knitr::kable( anova(fit_7_no_spike))
 
 In conclusion, our analysis cannot subscribe to conducting a causal inference using the data. However, we suggest additional controls and confounders that could help overcome this challenge in future iterations. From our analysis, we see that deaths and hospitalizations in Denmark are rising. Denmark has been a country with high-covid restrictions throughout the pandemic, high vaccination rates and high trust in the government. Moreover, the life expectancy of the population is also about 81 years. Therefore, in someways it is comparable to other first-world nations in the west. As seen from our analysis, the policy change, dropping all covid restrictions was did not significantly affect the deaths in Denmark. 
 
-This analysis however, is not an evidence against the effectiveness of stringent covid policies. The weakness of the analysis fail to make a case for restrictions but it also suggests a new direction of investigation which is the hospitalization rate. The linear mixed model showed a positive relation between hospitalization and deaths. Moreover, There is a correlation between hospital rates and restrictions and perhaps this outcome indirectly explains the deaths. Factors such as new variants, mutations are beyond our control but health care response is, therefore, my next direction for this project would be to study the impact of dropping restrictions on hospitalization. 
+This analysis however, is not an evidence against the effectiveness of stringent covid policies. The weakness of the analysis fail to make a case for restrictions but it also suggests a new direction of investigation which is the hospitalization rate. The linear mixed model showed a positive relation between hospitalization and deaths. Moreover, there is a correlation between hospital rates and restrictions and perhaps this outcome indirectly explains the deaths. Factors such as new variants, mutations are beyond our control but health care response is, therefore, my next direction for this project would be to study the impact of dropping restrictions on hospitalization. 
 
 # Reference 
+
+Ritchie, Hannah, et al. “Coronavirus Source Data.” Our World in Data, 5 Mar. 2020, https://ourworldindata.org/coronavirus-source-data. 
+
+World Health Organization, World Health Organization, https://covid19.who.int/info. 
 
 Thornton, Jacqui. “Covid-19: Trust in Government and Other People Linked with Lower Infection Rate and Higher Vaccination Uptake.” The BMJ, British Medical Journal Publishing Group, 2 Feb. 2022, https://www.bmj.com/content/376/bmj.o292. 
 
